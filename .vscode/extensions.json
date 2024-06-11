@@ -1,0 +1,17 @@
+{
+    "recommendations": [
+        "ms-azuretools.vscode-docker",
+        "clemenspeters.format-json",
+        "eamodio.gitlens",
+        "tamasfe.even-better-toml",
+        "donjayamanne.python-environment-manager",
+        "ms-python.python",
+        "ms-toolsai.jupyter",
+        "charliermarsh.ruff",
+        "mgesbert.python-path",
+        "vscode-icons-team.vscode-icons",
+        "angelo-breuer.clock",
+        "mutantdino.resourcemonitor",
+        "littlefoxteam.vscode-python-test-adapter"
+    ]
+}

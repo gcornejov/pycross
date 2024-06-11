@@ -1,0 +1,18 @@
+{   
+    "clock.alignment": "Right",
+    "clock.format": "HH:MM",
+    "editor.tabSize": 4,
+    "files.autoSave": "afterDelay",
+    "python.defaultInterpreterPath": "./.venv/bin/python",
+    "python.terminal.activateEnvironment": true,
+    "python.terminal.activateEnvInCurrentTerminal": true,
+    "python.testing.pytestEnabled": true,
+    "python.testing.pytestArgs": [
+        "-s"
+    ],
+    "ruff.path": ["./.venv/bin/ruff"],
+    "ruff.interpreter": ["./.venv/bin/python"],
+    "terminal.integrated.defaultProfile.linux": "zsh",
+    "testExplorer.addToEditorContextMenu": true,
+    "testExplorer.onReload": "reset",
+}
