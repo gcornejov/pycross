@@ -68,7 +68,7 @@ def test_check_solution_matrix_exception(test_grid_obj: Grid, rows: list[int]):
         test_grid_obj._check_solution_matrix(solution, 5, 5)
 
 
-def test_draw_board_borders(test_grid_obj: Grid):
+def test_draw_frame(test_grid_obj: Grid):
     grid_top: str = (
         "             1     1    \n"
         "             1  2  1    \n"
@@ -82,7 +82,7 @@ def test_draw_board_borders(test_grid_obj: Grid):
         "    1  1 "
     ]
     
-    border_top, border_left = test_grid_obj._draw_board_borders()
+    border_top, border_left = test_grid_obj._draw_frame()
 
     assert grid_top == border_top and grid_left == border_left
 
@@ -181,7 +181,7 @@ def test_draw_pixel_wrong_format(test_grid_obj: Grid):
     "input, exception_class, out_msg",
     [
         ("x,y", ValueError, "Enter numeric (int) values for the coordinates\n"),
-        ("6,2", IndexError, "Enter coordinates within the grid borders\n"),
+        ("6,2", IndexError, "Enter coordinates within the grid\n"),
     ]
 )
 def test_draw_pixel_exception(capfd, test_grid_obj: Grid, input: str, exception_class: Exception, out_msg: str):
