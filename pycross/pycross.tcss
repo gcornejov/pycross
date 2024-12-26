@@ -1,0 +1,57 @@
+Screen {
+    padding: 5 15;
+}
+
+Board {
+    align: center top;
+}
+
+TopFrame {
+    layout: grid;
+    margin-left: 8; # Set by code
+
+    height: 3; # Set by code
+    width: 31; # Set by code
+}
+
+LeftFrame {
+    layout: grid;
+    align: right middle;
+    padding-top: 1;
+    margin-right: 1;
+
+    height: 17; # Set by code
+    width: 3; # Set by code
+}
+
+Grid {
+    layout: grid;
+    
+    border-top: solid white;
+    border-left: solid white;
+    padding-left: 1;
+
+    height: 17;
+    width: 33;
+}
+
+Cell {
+    max-width: 6;
+    max-height: 3;
+}
+
+Cell:focus {
+    border: solid white;
+}
+
+.painted {
+    background: gray !important;
+}
+
+.checkerboard-a {
+    background: blue;
+}
+
+.checkerboard-b {
+    background: red;
+}
