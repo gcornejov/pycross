@@ -8,9 +8,9 @@ Board {
 
 TopFrame {
     layout: grid;
-    margin-left: 8; # Set by code
+    # margin-left: 5; # Set by code
 
-    height: 3; # Set by code
+    # height: 3; # Set by code
     width: 31; # Set by code
 }
 
@@ -21,7 +21,7 @@ LeftFrame {
     margin-right: 1;
 
     height: 17; # Set by code
-    width: 3; # Set by code
+    # width: 5; # Set by code
 }
 
 Grid {
@@ -36,22 +36,22 @@ Grid {
 }
 
 Cell {
-    max-width: 6;
-    max-height: 3;
+    width: 6;
+    height: 3;
 }
 
 Cell:focus {
-    border: solid white;
+    border: solid gray;
 }
 
 .painted {
-    background: gray !important;
+    background: #41424C !important;
 }
 
 .checkerboard-a {
-    background: blue;
+    background:#59c6c6;
 }
 
 .checkerboard-b {
-    background: red;
+    background: white;
 }

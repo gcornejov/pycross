@@ -1,4 +1,4 @@
-from typing import Dict, Final
+from typing import Dict, Final, Tuple
 
 from textual.app import App, ComposeResult, RenderResult
 from textual.containers import Container, HorizontalGroup
@@ -43,33 +43,49 @@ class Grid(Container):
             bg_type = not bg_type
 
 class TopFrame(Container):
-    def __init__(self, lenght: int):
-        self.lenght = lenght
+    def __init__(self, guides: Tuple[Tuple[int]], left_offset: int, height: int):
+        self.guides = guides
         super().__init__()
 
-        self.styles.grid_size_columns = lenght
+        self.styles.grid_size_columns = len(guides)
+        self.styles.margin = (0, 0, 0, left_offset)
+        self.styles.height = height
 
     def compose(self) -> ComposeResult:
-        for _ in range(self.lenght):
-            yield Label(f"{_}\n{_}\n{_}")
+        for _ in self.guides:
+            yield Label("\n".join(map(str, _)))
 
 
 class LeftFrame(Container):
-    def __init__(self, lenght: int):
-        self.lenght = lenght
+    def __init__(self, guides: Tuple[Tuple[int]], width: int):
+        self.guides = guides
         super().__init__()
 
-        self.styles.grid_size_rows = lenght
+        self.styles.grid_size_rows = len(guides)
+        self.styles.width = width
 
     def compose(self) -> ComposeResult:
-        for _ in range(self.lenght):
-            yield Label(f"{_} {_}")
+        for _ in self.guides:
+            yield Label(" ".join(map(str, _)))
 
 
 class Board(Container):
+    BASE_TOP_FRAME_OFFSET: Final[int] = 5 # LeftFrame right mirgin (1) + Grid left padding (1) + Cell/Tile half width (6/2)
+
+    def __init__(self, top_guides: Tuple[Tuple[int]], left_guides: Tuple[Tuple[int]]):
+        self.top_guides = top_guides
+        self.left_guides = left_guides
+
+        self._max_top_guides_len: int = len(max(top_guides, key=len))
+        self._max_left_guides_len: int = len(max(left_guides, key=len))
+
+        self._left_frame_width: int = (self._max_left_guides_len * 2) - 1
+        self._top_frame_offset: int = self.BASE_TOP_FRAME_OFFSET + self._left_frame_width
+        super().__init__()
+
     def compose(self) -> ComposeResult:
-        yield TopFrame(5)
-        yield HorizontalGroup(LeftFrame(5), Grid(5))
+        yield TopFrame(self.top_guides, self._top_frame_offset, self._max_top_guides_len)
+        yield HorizontalGroup(LeftFrame(self.left_guides, self._left_frame_width), Grid(5))
 
 
 class PycrossApp(App):
@@ -83,7 +99,23 @@ class PycrossApp(App):
     ]
 
     def compose(self) -> ComposeResult:
-        yield Board()
+        top_guide = (
+            (1,),
+            (1, 1, 1),
+            (2, 1),
+            (1, 1, 1),
+            (1,),
+        )
+
+        left_guide = (
+            (3,),
+            (1,),
+            (1, 1),
+            (1, 1, 1),
+            (1, 1),
+        )
+
+        yield Board(top_guide, left_guide)
 
     def action_traverse_grid(self, x_direction: int, y_direction: int) -> None:
         grid: Grid = self.query_exactly_one(Grid)
@@ -92,7 +124,7 @@ class PycrossApp(App):
         next_x: int = current_cell.x + x_direction
         next_y: int = current_cell.y + y_direction
 
-        if next_x >= 0 and next_x < grid.dimension and next_y >= 0 and next_y < grid.dimension:
+        if 0 <= next_x < grid.dimension and 0 <= next_y < grid.dimension:
             next_cell: Cell = self.query_exactly_one(f"#cell_{next_x}_{next_y}")
             self.set_focus(next_cell)
     
