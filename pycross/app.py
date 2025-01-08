@@ -1,27 +1,65 @@
-from typing import Dict, Final, Tuple
+from itertools import cycle
+from textwrap import dedent
+from typing import Final, Iterator, List, Tuple
 
 from textual.app import App, ComposeResult, RenderResult
+from textual.binding import Binding
 from textual.containers import Container, HorizontalGroup
+from textual.events import Key
+from textual.message import Message
 from textual.widget import Widget
 from textual.widgets import Label
 
 DEFAULT_GRID_DIMENSION: Final[int] = 5
+TILE_ID_TEMPLATE: Final[str] = "tile_%s_%s"
 
 
-class Cell(Widget, can_focus=True):
+class WinnerMessage(Label):
+    def show(self) -> None:
+        self.update(
+            dedent("""
+                YOU WON!!!
+                press "r" to replay the game.
+            """)
+        )
+        self.add_class("visible")
+
+    def hide(self) -> None:
+        self.remove_class("visible")
+
+
+class Tile(Widget, can_focus=True):
+    class Painted(Message): 
+        def __init__(self, x: int, y: int) -> None:
+            self.x = x
+            self.y = y
+            super().__init__()
+
     def __init__(self, x: int, y: int, *args, **kwargs):
         self.x = x
         self.y = y
         super().__init__(*args, **kwargs)
+
+        self.id = TILE_ID_TEMPLATE % (x, y)
     
     def render(self) -> RenderResult:
         return ""
     
     def on_click(self) -> None:
+        self._toggle()
+    
+    def on_key(self, event: Key) -> None:
+        if event.key == "z":
+            self._toggle()
+
+    def _toggle(self) -> None:
         self.toggle_class("painted")
+        self.post_message(self.Painted(self.x, self.y))
 
 
-class Grid(Container):
+class GameGrid(Container):
+    CHECKERBOARD_PATTERN: Tuple[str] = ["checkerboard-a", "checkerboard-b"]
+
     def __init__(self, dimension: int = DEFAULT_GRID_DIMENSION):
         self.dimension: int = dimension
         super().__init__()
@@ -29,18 +67,15 @@ class Grid(Container):
         self.styles.grid_size_rows = self.styles.grid_size_columns = dimension
 
     def compose(self) -> ComposeResult:
-        backgrounds: Dict[str] = {
-            True: "checkerboard-a",
-            False: "checkerboard-b",
-        }
+        pattern_iterator: Iterator[str] = cycle(self.CHECKERBOARD_PATTERN)
 
-        q_cells: int = self.dimension**2
-        bg_type: bool = True
-        for i in range(q_cells):
+        q_tiles: int = self.dimension**2
+        for i in range(q_tiles):
             x = i % self.dimension
             y = int(i / self.dimension)
-            yield Cell(x, y, id=f"cell_{x}_{y}", classes=f"{backgrounds[bg_type]}")
-            bg_type = not bg_type
+
+            yield Tile(x, y, classes=f"{next(pattern_iterator)}")
+
 
 class TopFrame(Container):
     def __init__(self, guides: Tuple[Tuple[int]], left_offset: int, height: int):
@@ -70,7 +105,7 @@ class LeftFrame(Container):
 
 
 class Board(Container):
-    BASE_TOP_FRAME_OFFSET: Final[int] = 5 # LeftFrame right mirgin (1) + Grid left padding (1) + Cell/Tile half width (6/2)
+    BASE_TOP_FRAME_OFFSET: Final[int] = 5 # LeftFrame right mirgin (1) + GameGrid left padding (1) + Tile half width (6/2)
 
     def __init__(self, top_guides: Tuple[Tuple[int]], left_guides: Tuple[Tuple[int]]):
         self.top_guides = top_guides
@@ -85,21 +120,45 @@ class Board(Container):
 
     def compose(self) -> ComposeResult:
         yield TopFrame(self.top_guides, self._top_frame_offset, self._max_top_guides_len)
-        yield HorizontalGroup(LeftFrame(self.left_guides, self._left_frame_width), Grid(5))
+        yield HorizontalGroup(LeftFrame(self.left_guides, self._left_frame_width), GameGrid(5))
+        yield WinnerMessage()
+
+
+class GameState():
+    def __init__(self, solution: Tuple[Tuple[int]]):
+        self.solution = solution
+        self.solved: bool = False
+        self.state: List[List[int]] = [
+            [0] * len(self.solution) for _ in range(len(self.solution[0]))
+        ]
+
+    def update_state(self, x: int, y: int) -> bool:
+        self.state[y][x] = 1 - self.state[y][x]
+
+        return self._check_solved()
+
+    def _check_solved(self) -> None:
+        for y in range(len(self.state)):
+            for x in range(len(self.state[y])):
+                if self.state[y][x] != self.solution[y][x]:
+                    return
+
+        self.solved = True
 
 
 class PycrossApp(App):
+    TITLE = "Play Game"
     CSS_PATH = "pycross.tcss"
     BINDINGS = [
-        ("up", "traverse_grid(0,-1)", "Move Up"),
-        ("down", "traverse_grid(0,1)", "Move Down"),
-        ("left", "traverse_grid(-1,0)", "Move Left"),
-        ("right", "traverse_grid(1,0)", "Move Right"),
-        ("z", "paint_tile", "Paint Tile"),
+        Binding("up", "traverse_grid(0,-1)", "Move Up"),
+        Binding("down", "traverse_grid(0,1)", "Move Down"),
+        Binding("left", "traverse_grid(-1,0)", "Move Left"),
+        Binding("right", "traverse_grid(1,0)", "Move Right"),
+        Binding("r", "replay", "Replay Game")
     ]
 
-    def compose(self) -> ComposeResult:
-        top_guide = (
+    def __init__(self):
+        self.top_guide: Tuple[Tuple[int]] = (
             (1,),
             (1, 1, 1),
             (2, 1),
@@ -107,7 +166,7 @@ class PycrossApp(App):
             (1,),
         )
 
-        left_guide = (
+        self.left_guide: Tuple[Tuple[int]] = (
             (3,),
             (1,),
             (1, 1),
@@ -115,22 +174,63 @@ class PycrossApp(App):
             (1, 1),
         )
 
-        yield Board(top_guide, left_guide)
+        solution: Tuple[Tuple[int]] = (
+            (0, 1, 1, 1, 0),
+            (0, 0, 1, 0, 0),
+            (0, 1, 0, 1, 0),
+            (1, 0, 1, 0, 1),
+            (0, 1, 0, 1, 0),
+        )
 
-    def action_traverse_grid(self, x_direction: int, y_direction: int) -> None:
-        grid: Grid = self.query_exactly_one(Grid)
-        current_cell: Cell = self.focused
+        self.game_state: GameState = GameState(solution)
+        super().__init__()
 
-        next_x: int = current_cell.x + x_direction
-        next_y: int = current_cell.y + y_direction
+    def compose(self) -> ComposeResult:
+        yield Board(self.top_guide, self.left_guide)
+
+    def action_traverse_grid(self, move_x: int, move_y: int) -> None:
+        if isinstance(self.focused, Tile):
+            next_x, next_y = self._next_position(move_x, move_y)
+            self._move(next_x, next_y)
+
+    
+    def _next_position(self, move_x: int, move_y: int) -> Tuple[int]:
+        current_tile: Tile = self.focused
+
+        next_x: int = current_tile.x + move_x
+        next_y: int = current_tile.y + move_y
+
+        return next_x, next_y
+    
+    def _move(self, next_x: int, next_y: int) -> None:
+        grid: GameGrid = self.query_exactly_one(GameGrid)
 
         if 0 <= next_x < grid.dimension and 0 <= next_y < grid.dimension:
-            next_cell: Cell = self.query_exactly_one(f"#cell_{next_x}_{next_y}")
-            self.set_focus(next_cell)
-    
-    def action_paint_tile(self):
-        current_cell: Cell = self.focused
-        current_cell.toggle_class("painted")
+            tile_id: str = TILE_ID_TEMPLATE % (next_x, next_y)
+            next_tile: Tile = self.query_exactly_one(f"#{tile_id}")
+
+            self.set_focus(next_tile)
+
+    def action_replay(self):
+        if self.query_one(GameGrid).disabled:
+            self.game_state = GameState(self.game_state.solution)
+
+            self.query(Tile).remove_class("painted")
+            self.query_one(WinnerMessage).hide()
+            self.query_one(GameGrid).disabled = False
+
+            tile_id: str = TILE_ID_TEMPLATE % (0, 0)
+            self.set_focus(self.query_exactly_one(f"#{tile_id}"))
+
+    def on_tile_painted(self, message: Tile.Painted) -> None:
+        self._play(message.x, message.y)
+
+    def _play(self, x: int, y: int) -> None:
+        self.game_state.update_state(x, y)
+
+        if self.game_state.solved:
+            self.query_one(GameGrid).disabled = True
+            self.query_one(WinnerMessage).show()
 
 
 if __name__ == "__main__":
