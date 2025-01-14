@@ -157,36 +157,25 @@ class PycrossApp(App):
         Binding("r", "replay", "Replay Game")
     ]
 
-    def __init__(self):
-        self.top_guide: Tuple[Tuple[int]] = (
-            (1,),
-            (1, 1, 1),
-            (2, 1),
-            (1, 1, 1),
-            (1,),
-        )
+    def __init__(self, top_guides: Tuple[Tuple[int]], left_guides: Tuple[Tuple[int]], solution: Tuple[Tuple[int]]):
+        self.top_guides = top_guides
+        self.left_guides = left_guides
+        self.game_state = GameState(solution)
 
-        self.left_guide: Tuple[Tuple[int]] = (
-            (3,),
-            (1,),
-            (1, 1),
-            (1, 1, 1),
-            (1, 1),
-        )
-
-        solution: Tuple[Tuple[int]] = (
-            (0, 1, 1, 1, 0),
-            (0, 0, 1, 0, 0),
-            (0, 1, 0, 1, 0),
-            (1, 0, 1, 0, 1),
-            (0, 1, 0, 1, 0),
-        )
-
-        self.game_state: GameState = GameState(solution)
+        self._check_game_parameters(solution)
         super().__init__()
 
+    def _check_game_parameters(self, solution: Tuple[Tuple[int]]):
+        if len(solution) != len(self.left_guides):
+            raise ValueError("Unmatching number of rows between Solution and Left Guide")
+
+        top_guides_len: int = len(self.top_guides)
+        for row in solution:
+            if len(row) != top_guides_len:
+                raise ValueError("Unmatching number of columns between Solution and Top Guide")
+
     def compose(self) -> ComposeResult:
-        yield Board(self.top_guide, self.left_guide)
+        yield Board(self.top_guides, self.left_guides)
 
     def action_traverse_grid(self, move_x: int, move_y: int) -> None:
         if isinstance(self.focused, Tile):
@@ -234,5 +223,29 @@ class PycrossApp(App):
 
 
 if __name__ == "__main__":
-    app = PycrossApp()
+    top_guides: Tuple[Tuple[int]] = (
+        (1,),
+        (1, 1, 1),
+        (2, 1),
+        (1, 1, 1),
+        (1,),
+    )
+
+    left_guides: Tuple[Tuple[int]] = (
+        (3,),
+        (1,),
+        (1, 1),
+        (1, 1, 1),
+        (1, 1),
+    )
+
+    solution: Tuple[Tuple[int]] = (
+        (0, 1, 1, 1, 0),
+        (0, 0, 1, 0, 0),
+        (0, 1, 0, 1, 0),
+        (1, 0, 1, 0, 1),
+        (0, 1, 0, 1, 0),
+    )
+
+    app = PycrossApp(top_guides, left_guides, solution)
     app.run()
