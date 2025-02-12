@@ -87,8 +87,8 @@ class TopFrame(Container):
         self.styles.height = height
 
     def compose(self) -> ComposeResult:
-        for _ in self.guides:
-            yield Label("\n".join(map(str, _)))
+        for col in self.guides:
+            yield Label("\n".join(map(str, col)))
 
 
 class LeftFrame(Container):
@@ -100,8 +100,8 @@ class LeftFrame(Container):
         self.styles.width = width
 
     def compose(self) -> ComposeResult:
-        for _ in self.guides:
-            yield Label(" ".join(map(str, _)))
+        for row in self.guides:
+            yield Label(" ".join(map(str, row)))
 
 
 class Board(Container):
@@ -135,7 +135,7 @@ class GameState():
     def update_state(self, x: int, y: int) -> bool:
         self.state[y][x] = 1 - self.state[y][x]
 
-        return self._check_solved()
+        self._check_solved()
 
     def _check_solved(self) -> None:
         for y in range(len(self.state)):
