@@ -1,6 +1,6 @@
 import pytest
 
-from pycross.game import Grid
+from pycross.console_mode.game import Grid
 
 
 @pytest.fixture

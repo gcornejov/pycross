@@ -1,30 +1,31 @@
-from pycross import game
+from typing import Tuple
 
+from pycross import Pycross
 
 if __name__ == "__main__":
-    rows = [
-        [3],
-        [1],
-        [1, 1],
-        [1, 1, 1],
-        [1, 1],
-    ]
+    top_guides: Tuple[Tuple[int]] = (
+        (1,),
+        (1, 1, 1),
+        (2, 1),
+        (1, 1, 1),
+        (1,),
+    )
 
-    columns = [
-        [1],
-        [1, 1, 1],
-        [1, 2],
-        [1, 1, 1],
-        [1],
-    ]
+    left_guides: Tuple[Tuple[int]] = (
+        (3,),
+        (1,),
+        (1, 1),
+        (1, 1, 1),
+        (1, 1),
+    )
 
-    solution = [
-        [0, 1, 1, 1, 0],
-        [0, 0, 1, 0, 0],
-        [0, 1, 0, 1, 0],
-        [1, 0, 1, 0, 1],
-        [0, 1, 0, 1, 0],
-    ]
+    solution: Tuple[Tuple[int]] = (
+        (0, 1, 1, 1, 0),
+        (0, 0, 1, 0, 0),
+        (0, 1, 0, 1, 0),
+        (1, 0, 1, 0, 1),
+        (0, 1, 0, 1, 0),
+    )
 
-    grid = game.Grid(rows, columns, solution)
-    grid.start_game()
+    app = Pycross(top_guides, left_guides, solution)
+    app.run()
