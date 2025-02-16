@@ -15,4 +15,6 @@
     "terminal.integrated.defaultProfile.linux": "zsh",
     "testExplorer.addToEditorContextMenu": true,
     "testExplorer.onReload": "reset",
+    "pythonTestExplorer.testFramework": "pytest",
+    "notebook.output.scrolling": true,
 }

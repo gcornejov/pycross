@@ -23,7 +23,7 @@ class Grid:
             solution_matrix, total_rows, total_cols
         )
 
-        self._top_board, self._left_board = self._draw_board_borders()
+        self._top_board, self._left_board = self._draw_frame()
         self._screen_board: str = self._draw_board()
 
     def _check_solution_matrix(
@@ -38,7 +38,7 @@ class Grid:
 
         return solution_matrix
 
-    def _draw_board_borders(self) -> tuple[str, list[int]]:
+    def _draw_frame(self) -> tuple[str, list[int]]:
         top_offset: str = "   " * self._max_row_len
         top_board: str = top_offset
         for i in range(self._max_col_len - 1, -1, -1):
@@ -94,7 +94,7 @@ class Grid:
         except ValueError:
             print("Enter numeric (int) values for the coordinates")
         except IndexError:
-            print("Enter coordinates within the grid borders")
+            print("Enter coordinates within the grid")
 
     def start_game(self) -> None: # pragma: no cover
         win = None
