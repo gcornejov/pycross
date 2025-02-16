@@ -1,4 +1,4 @@
-import game
+from .game import Grid
 
 
 if __name__ == "__main__":
@@ -26,5 +26,5 @@ if __name__ == "__main__":
         [0, 1, 0, 1, 0],
     ]
 
-    grid = game.Grid(rows, columns, solution)
-    grid.start_game()
+    game = Grid(rows, columns, solution)
+    game.start_game()
